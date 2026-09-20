@@ -13,6 +13,7 @@ export interface Issue {
   assignee: string;
   progress: Status;
   address: string;
+  version: number;
 }
 export const people = [
   "王建国 · 市政养护",
@@ -150,6 +151,7 @@ export const initialIssues: Issue[] = rows.map((r, i) => ({
   submittedAt: `2026-09-18 ${String(10 - Math.floor(i / 4)).padStart(2, "0")}:${String(48 - i * 3).padStart(2, "0")}`,
   assignee: r[3] === "待分配" ? "" : people[i % 4]!,
   images: ["/issue-scene.svg"],
+  version: 0,
 }));
 export function isIssueList(value: unknown): value is Issue[] {
   return (

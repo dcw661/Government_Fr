@@ -1,28 +1,21 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import AppIcon from "./components/AppIcon.vue";
 import IssueMap from "./components/IssueMap.vue";
+import { getIssue, listIssues, updateIssue } from "./api/issues";
+import { apiBaseUrl, apiEnvironmentLabel } from "./config/api";
 import {
-  initialIssues,
-  isIssueList,
   people,
   statuses,
   types,
   type Issue,
   type Status,
 } from "./data/issues";
-const storageKey = "city-governance-demo-v1";
 const notice = ref("");
-let saved: unknown;
-try {
-  const raw = localStorage.getItem(storageKey);
-  saved = raw ? JSON.parse(raw) : null;
-} catch {
-  notice.value = "本地数据读取失败，已加载演示数据。";
-}
-const issues = ref<Issue[]>(
-  isIssueList(saved) ? saved : structuredClone(initialIssues),
-);
+const issues = ref<Issue[]>([]);
+const loading = ref(true);
+const saving = ref(false);
+const loadError = ref("");
 const query = ref("");
 const typeFilter = ref("全部类型");
 const statusFilter = ref("全部问题");
@@ -56,7 +49,9 @@ const counts = computed(() =>
   ),
 );
 const completion = computed(() =>
-  Math.round(((counts.value["已完成"] || 0) / issues.value.length) * 100),
+  issues.value.length
+    ? Math.round(((counts.value["已完成"] || 0) / issues.value.length) * 100)
+    : 0,
 );
 function tell(message: string) {
   notice.value = message;
@@ -69,6 +64,27 @@ watch(notice, (value) => {
     }, 4500);
   }
 });
+function replaceIssue(issue: Issue) {
+  const index = issues.value.findIndex((item) => item.id === issue.id);
+  if (index >= 0) issues.value[index] = issue;
+}
+async function refreshIssues(showNotice = true) {
+  loading.value = true;
+  loadError.value = "";
+  try {
+    issues.value = await listIssues();
+    if (selectedId.value && !issues.value.some((issue) => issue.id === selectedId.value)) {
+      selectedId.value = null;
+      dialog.value?.close();
+    }
+    if (showNotice) tell(`已从后端刷新 ${issues.value.length} 条问题。`);
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : "加载问题列表失败";
+    tell(loadError.value);
+  } finally {
+    loading.value = false;
+  }
+}
 async function openIssue(issue: Issue) {
   selectedId.value = issue.id;
   draftPerson.value = issue.assignee;
@@ -76,8 +92,17 @@ async function openIssue(issue: Issue) {
   detailError.value = "";
   await nextTick();
   dialog.value?.showModal();
+  try {
+    const latest = await getIssue(issue.id);
+    if (selectedId.value !== issue.id) return;
+    replaceIssue(latest);
+    draftPerson.value = latest.assignee;
+    draftStatus.value = latest.progress;
+  } catch (error) {
+    tell(error instanceof Error ? error.message : "刷新问题详情失败");
+  }
 }
-function saveIssue() {
+async function saveIssue() {
   if (!selected.value) return;
   if (draftStatus.value !== "待分配" && !draftPerson.value) {
     detailError.value = "请先选择责任人，再设置处理进度。";
@@ -87,15 +112,21 @@ function saveIssue() {
     detailError.value = "已选择责任人，请将进度设为待处理、处理中或已完成。";
     return;
   }
-  selected.value.assignee = draftPerson.value;
-  selected.value.progress = draftStatus.value;
+  saving.value = true;
   try {
-    localStorage.setItem(storageKey, JSON.stringify(issues.value));
-    tell("更新成功，责任人与进度已保存到本机。");
-  } catch {
-    tell("本次修改已生效，但浏览器无法保存，刷新后可能丢失。");
+    const updated = await updateIssue(selected.value.id, {
+      assignee: draftPerson.value,
+      progress: draftStatus.value,
+      version: selected.value.version,
+    });
+    replaceIssue(updated);
+    tell("更新成功，责任人与进度已同步到后端。");
+    dialog.value?.close();
+  } catch (error) {
+    detailError.value = error instanceof Error ? error.message : "保存处置安排失败";
+  } finally {
+    saving.value = false;
   }
-  dialog.value?.close();
 }
 function selectPerson() {
   if (draftPerson.value && draftStatus.value === "待分配")
@@ -167,6 +198,7 @@ const statusClass = (status: string) =>
   ({ 待分配: "orange", 待处理: "gray", 处理中: "blue", 已完成: "green" })[
     status
   ];
+onMounted(() => refreshIssues(false));
 </script>
 
 <template>
@@ -229,7 +261,7 @@ const statusClass = (status: string) =>
           }}</strong>
         </div>
         <div class="topbar-right">
-          <span class="environment"><i></i>演示环境</span
+          <span class="environment"><i></i>{{ apiEnvironmentLabel }}</span
           ><span class="divider"></span
           ><AppIcon name="building" :size="16" /><span
             >南京市 · 城市管理中心</span
@@ -257,9 +289,14 @@ const statusClass = (status: string) =>
               }}
             </p>
           </div>
-          <button class="button secondary" @click="exportIssues">
-            <AppIcon name="download" :size="17" />导出问题清单
-          </button>
+          <div class="heading-actions">
+            <button class="button secondary" :disabled="loading" @click="refreshIssues()">
+              <AppIcon name="clock" :size="17" />{{ loading ? "刷新中" : "刷新数据" }}
+            </button>
+            <button class="button secondary" :disabled="!issues.length" @click="exportIssues">
+              <AppIcon name="download" :size="17" />导出问题清单
+            </button>
+          </div>
         </section>
         <section class="stats" aria-label="问题统计">
           <button
@@ -326,8 +363,9 @@ const statusClass = (status: string) =>
               <h2>问题协同中心</h2>
               <span class="subtle-badge">{{ filtered.length }} 个问题</span>
             </div>
-            <span class="sync-label"
-              ><span class="live-dot"></span> 本机演示数据</span
+            <span class="sync-label" :title="apiBaseUrl"
+              ><span class="live-dot"></span>
+              {{ loading ? "正在同步" : loadError ? "连接异常" : "后端实时数据" }}</span
             >
           </div>
           <div class="filters">
@@ -409,7 +447,18 @@ const statusClass = (status: string) =>
                     /></span>
                   </div>
                 </button>
-                <div v-if="!filtered.length" class="empty-state">
+                <div v-if="loading" class="empty-state">
+                  <AppIcon name="clock" :size="36" />
+                  <h3>正在加载问题数据</h3>
+                  <p>正在连接 {{ apiBaseUrl }}</p>
+                </div>
+                <div v-else-if="loadError && !issues.length" class="empty-state">
+                  <AppIcon name="close" :size="36" />
+                  <h3>暂时无法连接后端</h3>
+                  <p>{{ loadError }}</p>
+                  <button class="button secondary" @click="refreshIssues()">重新连接</button>
+                </div>
+                <div v-else-if="!filtered.length" class="empty-state">
                   <AppIcon name="search" :size="36" />
                   <h3>没有符合条件的问题</h3>
                   <p>试试其他关键词，或重置筛选条件。</p>
@@ -433,7 +482,7 @@ const statusClass = (status: string) =>
         </section>
         <footer class="page-footer">
           <span>城事通 · 城市治理协同平台</span
-          ><span>演示数据仅保存在当前浏览器，尚未连接后端</span>
+          ><span>已连接 {{ apiEnvironmentLabel }} · {{ apiBaseUrl }}</span>
         </footer>
       </main>
     </div>
@@ -506,7 +555,7 @@ const statusClass = (status: string) =>
           >
             <img
               :src="selected.images[0]"
-              alt="问题现场示意插画，非真实现场照片"
+              alt="问题现场照片"
             /><span>查看大图 ↗</span>
           </button>
           <p v-else class="muted">暂无现场图片</p>
@@ -534,8 +583,8 @@ const statusClass = (status: string) =>
         </div>
         <div class="detail-actions">
           <button class="button secondary" @click="dialog?.close()">取消</button
-          ><button class="button primary" @click="saveIssue">
-            <AppIcon name="check" :size="17" />保存处置安排
+          ><button class="button primary" :disabled="saving" @click="saveIssue">
+            <AppIcon name="check" :size="17" />{{ saving ? "保存中" : "保存处置安排" }}
           </button>
         </div></template
       >
@@ -550,9 +599,9 @@ const statusClass = (status: string) =>
       ><img
         v-if="selected?.images[0]"
         :src="selected.images[0]"
-        alt="问题现场示意插画"
+        alt="问题现场照片"
       />
-      <p>演示图片 · 接入后端后可展示真实现场照片</p>
+      <p>问题现场图片</p>
     </dialog>
     <div v-if="notice" class="toast" role="status">
       <AppIcon name="check" :size="18" />{{ notice }}
