@@ -150,7 +150,7 @@ async function saveIssue() {
     return;
   }
   if (draftStatus.value === "待分配" && draftPerson.value) {
-    detailError.value = "已选择责任人，请将进度设为待处理、处理中或已完成。";
+    detailError.value = "已选择责任人，请将进度设为处理中或已完成。";
     return;
   }
   saving.value = true;
@@ -171,7 +171,7 @@ async function saveIssue() {
 }
 function selectPerson() {
   if (draftPerson.value && draftStatus.value === "待分配")
-    draftStatus.value = "待处理";
+    draftStatus.value = "处理中";
   if (!draftPerson.value) draftStatus.value = "待分配";
 }
 function setView(view: string) {
@@ -236,7 +236,7 @@ function exportIssues() {
   tell(`已导出 ${filtered.value.length} 条问题。`);
 }
 const statusClass = (status: string) =>
-  ({ 待分配: "orange", 待处理: "gray", 处理中: "blue", 已完成: "green" })[
+  ({ 待分配: "orange", 处理中: "blue", 已完成: "green" })[
     status
   ];
 onMounted(() => refreshIssues(false));

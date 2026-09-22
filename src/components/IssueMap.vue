@@ -22,7 +22,6 @@ const emit = defineEmits<{ select: [issue: Issue] }>();
 
 const colors: Record<string, string> = {
   待分配: "#ed9750",
-  待处理: "#8d9bad",
   处理中: "#4f7bf1",
   已完成: "#45a790",
 };

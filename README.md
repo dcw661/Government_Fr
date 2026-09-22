@@ -98,7 +98,7 @@ VITE_SERVER_API_BASE_URL=https://api.example.gov.cn/
 | type | 问题类型 |
 | description | 问题详细描述 |
 | assignee | 责任人，未分配为空字符串 |
-| progress | 待分配 / 待处理 / 处理中 / 已完成 |
+| progress | 待分配 / 处理中 / 已完成 |
 | address | 展示地址，可由后端提供或逆地理编码生成 |
 | version | 乐观锁版本，更新时原样传回后端 |
 

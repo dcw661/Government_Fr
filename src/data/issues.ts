@@ -1,4 +1,4 @@
-export const statuses = ["待分配", "待处理", "处理中", "已完成"] as const;
+export const statuses = ["待分配", "处理中", "已完成"] as const;
 export type Status = (typeof statuses)[number];
 export interface Issue {
   id: string;
@@ -51,7 +51,7 @@ const rows: [string, string, string, Status, number, number, string][] = [
     "路灯损坏，夜间照明不足",
     "公共设施",
     "北京东路和平公园南门",
-    "待处理",
+    "处理中",
     118.791,
     32.065,
     "连续两盏路灯无法正常亮起，影响夜间步行，请安排检修。",
@@ -87,7 +87,7 @@ const rows: [string, string, string, Status, number, number, string][] = [
     "雨水井盖周边路面沉降",
     "道路设施",
     "上海路宁海路段",
-    "待处理",
+    "处理中",
     118.754,
     32.062,
     "井盖周边出现路面沉降，经过车辆有明显颠簸，建议检查修复。",
@@ -132,7 +132,7 @@ const rows: [string, string, string, Status, number, number, string][] = [
     "道路隔离护栏破损",
     "道路设施",
     "长江路文化街区",
-    "待处理",
+    "处理中",
     118.801,
     32.049,
     "道路隔离护栏局部变形，存在尖锐边缘，需要更换损坏段。",
