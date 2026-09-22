@@ -515,10 +515,8 @@ function toggleLabels() {
         ><i :style="{ background: color }"></i>{{ label }}</span
       >
     </div>
-    <div class="map-disclaimer">
-      {{
-        mode === "ready" ? "底图服务 © 百度地图" : "演示底图 · 非真实地理边界"
-      }}
+    <div v-if="mode === 'fallback'" class="map-disclaimer">
+      演示底图 · 非真实地理边界
     </div>
   </div>
 </template>

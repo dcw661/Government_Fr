@@ -2,6 +2,8 @@
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import AppIcon from "./components/AppIcon.vue";
 import IssueMap from "./components/IssueMap.vue";
+import PanoramaViewer from "./components/PanoramaViewer.vue";
+import StatsCards from "./components/StatsCards.vue";
 import { getIssue, listIssues, updateIssue } from "./api/issues";
 import { apiBaseUrl, apiEnvironmentLabel } from "./config/api";
 import {
@@ -28,6 +30,7 @@ const draftPerson = ref("");
 const draftStatus = ref<Status>("待分配");
 const dialog = ref<HTMLDialogElement>();
 const photoDialog = ref<HTMLDialogElement>();
+const panoEnabled = ref(true);
 const detailError = ref("");
 const filtered = computed(() =>
   issues.value.filter(
@@ -101,6 +104,44 @@ async function openIssue(issue: Issue) {
   } catch (error) {
     tell(error instanceof Error ? error.message : "刷新问题详情失败");
   }
+}
+async function openPhoto() {
+  const url = selected.value?.images[0];
+  // 用优化版小图做比例探测，避免为判断格式整张下载 8K 原图
+  panoEnabled.value = url ? await detectPano(optimizedMediaUrl(url, 2048)) : false;
+  photoDialog.value?.showModal();
+}
+/** 把 /media/xxx 改写成后端 web 优化版 /media/opt/xxx?w=…，非 media 地址原样返回 */
+function optimizedMediaUrl(value: string, width: number): string {
+  try {
+    const u = new URL(value, window.location.href);
+    if (!u.pathname.startsWith("/media/") || u.pathname.startsWith("/media/opt/")) return value;
+    u.pathname = u.pathname.replace(/^\/media\//, "/media/opt/");
+    u.searchParams.set("w", String(width));
+    return u.toString();
+  } catch {
+    return value;
+  }
+}
+/** 优化版不可用（如后端未部署该接口）时回退原图，保证缩略图不坏 */
+function fallbackToOriginal(event: Event) {
+  const img = event.target as HTMLImageElement | null;
+  const original = selected.value?.images[0];
+  if (img && original && img.src !== new URL(original, window.location.href).toString()) {
+    img.src = new URL(original, window.location.href).toString();
+  }
+}
+function detectPano(url: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const ratio = img.naturalWidth / Math.max(1, img.naturalHeight);
+      // 影石双鱼眼/等距柱状全景均为约 2:1 且分辨率较高
+      resolve(img.naturalWidth >= 1500 && ratio > 1.8 && ratio < 2.2);
+    };
+    img.onerror = () => resolve(false);
+    img.src = url;
+  });
 }
 async function saveIssue() {
   if (!selected.value) return;
@@ -208,9 +249,6 @@ onMounted(() => refreshIssues(false));
         ><span class="brand-icon"><AppIcon name="building" :size="27" /></span
         ><span>城事通<small>城市治理协同平台</small></span></a
       >
-      <div class="workspace-tag">
-        <span class="live-dot"></span> 政府工作台 <span>GOV</span>
-      </div>
       <p class="nav-label">工作空间</p>
       <nav aria-label="主导航">
         <button
@@ -236,15 +274,9 @@ onMounted(() => refreshIssues(false));
         </button>
       </nav>
       <div class="sidebar-bottom">
-        <div class="demo-note">
-          <span class="demo-symbol">◇</span><strong>让城市问题，有回应</strong>
-          <p>发现 · 分派 · 处置 · 闭环</p>
-          <span class="demo-label">交互演示版</span>
-        </div>
         <div class="account">
           <span class="avatar">管</span>
           <div><strong>城市管理中心</strong><small>政府管理员</small></div>
-          <span class="account-dot"></span>
         </div>
       </div>
     </aside>
@@ -261,9 +293,7 @@ onMounted(() => refreshIssues(false));
           }}</strong>
         </div>
         <div class="topbar-right">
-          <span class="environment"><i></i>{{ apiEnvironmentLabel }}</span
-          ><span class="divider"></span
-          ><AppIcon name="building" :size="16" /><span
+          <AppIcon name="building" :size="16" /><span
             >南京市 · 城市管理中心</span
           >
         </div>
@@ -298,64 +328,12 @@ onMounted(() => refreshIssues(false));
             </button>
           </div>
         </section>
-        <section class="stats" aria-label="问题统计">
-          <button
-            class="stat-card"
-            :class="{ chosen: statusFilter === '全部问题' }"
-            @click="statusFilter = '全部问题'"
-          >
-            <div>
-              <span>上报问题总数</span
-              ><strong>{{ issues.length }}<small>件</small></strong>
-              <p><span class="mini-dot blue-bg"></span> 全部已收录问题</p>
-            </div>
-            <span class="stat-icon blue"
-              ><AppIcon name="layers" :size="23"
-            /></span>
-          </button>
-          <button
-            class="stat-card"
-            :class="{ chosen: statusFilter === '待分配' }"
-            @click="statusFilter = '待分配'"
-          >
-            <div>
-              <span>待分配</span
-              ><strong>{{ counts["待分配"] }}<small>件</small></strong>
-              <p class="orange-text">需要安排责任人 ↗</p>
-            </div>
-            <span class="stat-icon orange"
-              ><AppIcon name="user" :size="23"
-            /></span>
-          </button>
-          <button
-            class="stat-card"
-            :class="{ chosen: statusFilter === '处理中' }"
-            @click="statusFilter = '处理中'"
-          >
-            <div>
-              <span>处理中</span
-              ><strong>{{ counts["处理中"] }}<small>件</small></strong>
-              <p><span class="mini-dot blue-bg"></span> 正在有序推进</p>
-            </div>
-            <span class="stat-icon blue"
-              ><AppIcon name="clock" :size="23"
-            /></span>
-          </button>
-          <button
-            class="stat-card"
-            :class="{ chosen: statusFilter === '已完成' }"
-            @click="statusFilter = '已完成'"
-          >
-            <div>
-              <span>已完成</span
-              ><strong>{{ counts["已完成"] }}<small>件</small></strong>
-              <p class="green-text">问题办结率 {{ completion }}%</p>
-            </div>
-            <span class="stat-icon green"
-              ><AppIcon name="check" :size="23"
-            /></span>
-          </button>
-        </section>
+        <StatsCards
+          v-model="statusFilter"
+          :total="issues.length"
+          :counts="counts"
+          :completion="completion"
+        />
         <section class="workbench">
           <div class="workbench-toolbar">
             <div class="section-title">
@@ -409,7 +387,7 @@ onMounted(() => refreshIssues(false));
               <div class="map-footer">
                 <AppIcon name="pin" :size="15" /><span
                   >点击地图点位，查看问题详情与处置进度</span
-                ><span class="coordinate-label">经纬度定位</span>
+                >
               </div>
             </div>
             <section class="issue-list-panel">
@@ -474,9 +452,7 @@ onMounted(() => refreshIssues(false));
                   </button>
                 </div>
               </div>
-              <div class="list-footer">
-                已显示 {{ filtered.length }} 条问题 · 点击卡片查看详情
-              </div>
+              <div class="list-footer">点击卡片查看详情与处置进度</div>
             </section>
           </div>
         </section>
@@ -550,13 +526,14 @@ onMounted(() => refreshIssues(false));
           <button
             v-if="selected.images.length"
             class="photo-button"
-            aria-label="查看现场示意图片"
-            @click="photoDialog?.showModal()"
+            aria-label="查看现场 360 全景"
+            @click="openPhoto"
           >
             <img
-              :src="selected.images[0]"
+              :src="optimizedMediaUrl(selected.images[0]!, 1024)"
+              @error="fallbackToOriginal"
               alt="问题现场照片"
-            /><span>查看大图 ↗</span>
+            /><span>360° 全景 ↗</span>
           </button>
           <p v-else class="muted">暂无现场图片</p>
           <div class="dispatch-box">
@@ -596,12 +573,24 @@ onMounted(() => refreshIssues(false));
         @click="photoDialog?.close()"
       >
         <AppIcon name="close" /></button
-      ><img
-        v-if="selected?.images[0]"
-        :src="selected.images[0]"
-        alt="问题现场照片"
-      />
-      <p>问题现场图片</p>
+      >
+      <div class="photo-stage">
+        <PanoramaViewer
+          v-if="panoEnabled && selected?.images[0]"
+          :src="selected.images[0]"
+        />
+        <img
+          v-else-if="selected?.images[0]"
+          :src="selected.images[0]"
+          alt="问题现场照片"
+        />
+      </div>
+      <div class="photo-bar">
+        <p>问题现场图片</p>
+        <button class="button secondary" @click="panoEnabled = !panoEnabled">
+          {{ panoEnabled ? "切换平面原图" : "切换 360° 全景" }}
+        </button>
+      </div>
     </dialog>
     <div v-if="notice" class="toast" role="status">
       <AppIcon name="check" :size="18" />{{ notice }}

@@ -8,6 +8,14 @@
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  /* 设计 token：统一主色、圆角与卡片阴影，便于整体调参 */
+  --brand: #4776ed;
+  --brand-strong: #365fd0;
+  --brand-soft: #edf2ff;
+  --radius-sm: 7px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --shadow-card: 0 4px 14px #2638570a;
 }
 * {
   box-sizing: border-box;
@@ -98,12 +106,12 @@ input {
 .brand-icon {
   width: 43px;
   height: 43px;
-  background: #416ce9;
+  background: var(--brand);
   color: white;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   display: grid;
   place-items: center;
-  box-shadow: 0 5px 12px #416ce929;
+  box-shadow: 0 5px 12px #4776ed29;
 }
 .brand small {
   display: block;
@@ -112,24 +120,6 @@ input {
   letter-spacing: 1.2px;
   font-weight: 400;
   margin-top: 2px;
-}
-.workspace-tag {
-  border: 1px solid #e8edf4;
-  border-radius: 7px;
-  padding: 10px;
-  font-size: 11px;
-  color: #69758a;
-  margin: 33px 5px 28px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.workspace-tag > span:last-child {
-  margin-left: auto;
-  font-size: 9px;
-  background: #f1f4f9;
-  padding: 1px 4px;
-  color: #9aa6ba;
 }
 .live-dot {
   display: inline-block;
@@ -143,7 +133,7 @@ input {
   font-size: 10px;
   color: #a6afbe;
   letter-spacing: 1.5px;
-  margin: 0 15px 13px;
+  margin: 30px 15px 13px;
 }
 nav {
   display: grid;
@@ -160,8 +150,8 @@ nav button {
   color: #788498;
 }
 nav button.active {
-  background: #edf2ff;
-  color: #456fdf;
+  background: var(--brand-soft);
+  color: var(--brand);
   font-weight: 600;
 }
 nav button:hover {
@@ -184,35 +174,6 @@ nav button:hover {
 .sidebar-bottom {
   margin-top: auto;
   padding-top: 55px;
-}
-.demo-note {
-  margin: 20px 7px 28px;
-  background: linear-gradient(145deg, #f6f8fe, #eef3fe);
-  border: 1px solid #eaf0fb;
-  border-radius: 10px;
-  padding: 18px 14px;
-}
-.demo-symbol {
-  display: block;
-  font-size: 29px;
-  color: #87a1e5;
-  margin-bottom: 6px;
-}
-.demo-note strong {
-  font-size: 12px;
-  font-weight: 600;
-}
-.demo-note p {
-  font-size: 10px;
-  color: #99a4b8;
-  margin: 8px 0 12px;
-}
-.demo-label {
-  font-size: 9px;
-  color: #7893d6;
-  background: white;
-  border-radius: 4px;
-  padding: 3px 7px;
 }
 .account {
   border-top: 1px solid #edf0f6;
@@ -240,13 +201,6 @@ nav button:hover {
 .account small {
   font-size: 10px;
   color: #a1adbf;
-}
-.account-dot {
-  height: 5px;
-  width: 5px;
-  background: #69b39e;
-  border-radius: 50%;
-  margin-left: auto;
 }
 .main-shell {
   margin-left: 224px;
@@ -278,25 +232,6 @@ nav button:hover {
 .topbar-right > span {
   margin: 0 !important;
 }
-.environment {
-  color: #7f8c9f;
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.environment i {
-  width: 5px;
-  height: 5px;
-  background: #61ab96;
-  border-radius: 50%;
-}
-.divider {
-  width: 1px;
-  height: 15px;
-  background: #e8edf5;
-  margin: 0 12px !important;
-}
 main {
   max-width: 1750px;
   margin: 0 auto;
@@ -307,7 +242,7 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 26px;
+  margin-bottom: 28px;
 }
 .eyebrow {
   font-size: 9px;
@@ -362,18 +297,18 @@ main {
   background: #f3f6fb;
 }
 .primary {
-  background: #4776ed;
+  background: var(--brand);
   color: white;
-  border: 1px solid #4776ed;
+  border: 1px solid var(--brand);
 }
 .primary:hover {
-  background: #365fd0;
+  background: var(--brand-strong);
 }
 .stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 18px;
-  margin-bottom: 26px;
+  margin-bottom: 28px;
 }
 .stat-card {
   display: flex;
@@ -382,8 +317,8 @@ main {
   padding: 21px 20px 17px;
   background: white;
   border: 1px solid #e7ecf4;
-  border-radius: 10px;
-  box-shadow: 0 3px 7px #26385702;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
   transition: border-color 0.15s;
 }
 .stat-card.chosen {
@@ -460,9 +395,9 @@ main {
 .workbench {
   background: white;
   border: 1px solid #e2e8f1;
-  border-radius: 11px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 4px 12px #26385703;
+  box-shadow: var(--shadow-card);
 }
 .workbench-toolbar {
   display: flex;
@@ -478,7 +413,7 @@ main {
 .title-line {
   width: 3px;
   height: 15px;
-  background: #5280ed;
+  background: var(--brand);
   border-radius: 2px;
 }
 .section-title h2 {
@@ -730,9 +665,6 @@ main {
   color: #98a3b3;
   background: #fafbfd;
   border-top: 1px solid #edf0f5;
-}
-.coordinate-label {
-  margin-left: auto;
 }
 .issue-list-panel {
   border-left: 1px solid #e9edf4;
@@ -1090,6 +1022,27 @@ dd {
   font-size: 12px;
   padding-top: 12px;
 }
+.photo-stage {
+  width: 100%;
+  height: min(58vh, 520px);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.photo-stage img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+}
+.photo-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.photo-bar p {
+  padding-top: 12px;
+}
 .toast {
   position: fixed;
   bottom: 28px;
@@ -1182,7 +1135,6 @@ dd {
     padding: 0;
   }
   .brand > span:last-child,
-  .workspace-tag,
   .nav-label,
   nav button > span,
   .sidebar-bottom {
@@ -1336,9 +1288,6 @@ dd {
   .map-footer {
     font-size: 8px;
     padding: 0 8px;
-  }
-  .coordinate-label {
-    display: none;
   }
   .issue-list-panel {
     border-left: 0;
