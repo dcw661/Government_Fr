@@ -14,7 +14,7 @@ const paths: Record<string, string> = {
   layers: "m12 2 10 6-10 6L2 8Z m-10 11 10 6 10-6 M2 14l10 6 10-6",
   target:
     "M12 2v4 M12 18v4 M2 12h4 M18 12h4 M19 12a7 7 0 1 1-14 0 7 7 0 0 1 14 0",
-  building: "M3 21h18 M6 21V8h12v13 M4 8l8-5 8 5 M9 11v6 M15 11v6",
+  building: "M3 21h18 M4 21V9h6v12 M10 21V3h7v18 M17 13h3v8 M6 12h2 M6 16h2 M12 7h3 M12 11h3 M12 15h3",
 };
 </script>
 <template>

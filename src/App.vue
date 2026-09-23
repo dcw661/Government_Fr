@@ -245,9 +245,9 @@ onMounted(() => refreshIssues(false));
 <template>
   <div class="app-shell">
     <aside class="sidebar">
-      <a class="brand" href="#" @click.prevent="setView('overview')"
+      <a class="brand" href="#" aria-label="BeyondSight 公共城市管理平台首页" @click.prevent="setView('overview')"
         ><span class="brand-icon"><AppIcon name="building" :size="27" /></span
-        ><span>城事通<small>城市治理协同平台</small></span></a
+        ><span>BeyondSight<small>公共城市管理平台</small></span></a
       >
       <p class="nav-label">工作空间</p>
       <nav aria-label="主导航">
@@ -276,7 +276,7 @@ onMounted(() => refreshIssues(false));
       <div class="sidebar-bottom">
         <div class="account">
           <span class="avatar">管</span>
-          <div><strong>城市管理中心</strong><small>政府管理员</small></div>
+          <div><strong>城市协作团队</strong><small>平台管理员</small></div>
         </div>
       </div>
     </aside>
@@ -294,14 +294,14 @@ onMounted(() => refreshIssues(false));
         </div>
         <div class="topbar-right">
           <AppIcon name="building" :size="16" /><span
-            >南京市 · 城市管理中心</span
+            >南京市 · 公共城市管理</span
           >
         </div>
       </header>
       <main>
         <section class="page-heading">
           <div>
-            <div class="eyebrow">CITY GOVERNANCE WORKSPACE</div>
+            <div class="eyebrow">PUBLIC CITY MANAGEMENT</div>
             <h1>
               {{
                 activeView === "overview"
@@ -315,7 +315,7 @@ onMounted(() => refreshIssues(false));
               {{
                 activeView === "assign"
                   ? "及时分派每一条上报，让责任落实到人。"
-                  : "汇聚城市上报，连接处置责任，让每一件小事都有着落。"
+                  : "连接公众上报与协作处理，共同改善城市公共空间。"
               }}
             </p>
           </div>
@@ -457,7 +457,7 @@ onMounted(() => refreshIssues(false));
           </div>
         </section>
         <footer class="page-footer">
-          <span>城事通 · 城市治理协同平台</span
+          <span>BeyondSight · 公共城市管理平台</span
           ><span>已连接 {{ apiEnvironmentLabel }} · {{ apiBaseUrl }}</span>
         </footer>
       </main>

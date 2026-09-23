@@ -1,6 +1,6 @@
-# 城事通 · 政府端
+# BeyondSight · 公共城市管理平台
 
-Vue 3 + TypeScript + Vite 实现的城市问题协同工作台。
+Vue 3 + TypeScript + Vite 实现的公共城市管理工作台，连接公众上报与协作处理，不限定于政府专用场景。
 
 ## 启动
 
@@ -20,7 +20,7 @@ npm run preview
 
 ## 功能
 
-- 从 `Government_Be` 实时加载问题列表和问题详情。
+- 从 `barrier-report-be` 实时加载问题列表和问题详情。
 - 百度地图（JS API WebGL 版）实时底图：按问题状态着色的点标记、悬停放大、选中高亮、缩放、视野重置和点位名称开关。
 - 未配置密钥或脚本加载失败时，自动回退到内置的南京城区 SVG 示意地图，页面不会报错。
 - 地图与问题列表共用搜索和筛选条件；统计卡片可以快速筛选状态。
@@ -38,7 +38,7 @@ npm run preview
 ```dotenv
 VITE_API_MODE=local
 VITE_LOCAL_API_BASE_URL=http://localhost:8080/
-VITE_SERVER_API_BASE_URL=https://api.example.gov.cn/
+VITE_SERVER_API_BASE_URL=https://api.example.com/
 ```
 
 可选值为 `local` 或 `server`。修改后需要重启 `npm run dev`，生产环境则需重新构建。个人配置可写入不会提交的 `.env.local`。后端需把当前前端来源加入 `CORS_ALLOWED_ORIGINS`。
