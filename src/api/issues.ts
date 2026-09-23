@@ -37,6 +37,8 @@ function parseIssue(value: unknown): Issue {
     typeof item.latitude !== "number" ||
     !Array.isArray(item.images) ||
     !item.images.every((image) => typeof image === "string") ||
+    (item.pendingImages !== undefined && (typeof item.pendingImages !== "number" || !Number.isInteger(item.pendingImages) || item.pendingImages < 0)) ||
+    (item.failedImages !== undefined && (typeof item.failedImages !== "number" || !Number.isInteger(item.failedImages) || item.failedImages < 0)) ||
     typeof item.type !== "string" ||
     typeof item.description !== "string" ||
     typeof item.assignee !== "string" ||
@@ -55,6 +57,8 @@ function parseIssue(value: unknown): Issue {
     longitude: item.longitude,
     latitude: item.latitude,
     images: item.images.map(absoluteMediaUrl),
+    pendingImages: typeof item.pendingImages === "number" ? item.pendingImages : 0,
+    failedImages: typeof item.failedImages === "number" ? item.failedImages : 0,
     type: item.type,
     description: item.description,
     assignee: item.assignee,

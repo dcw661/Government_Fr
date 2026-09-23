@@ -535,7 +535,13 @@ onMounted(() => refreshIssues(false));
               alt="问题现场照片"
             /><span>360° 全景 ↗</span>
           </button>
-          <p v-else class="muted">暂无现场图片</p>
+          <p v-else-if="!selected.pendingImages && !selected.failedImages" class="muted">暂无现场图片</p>
+          <p v-if="(selected.pendingImages ?? 0) > 0" class="muted" role="status">
+            另有 {{ selected.pendingImages }} 张图片正在脱敏处理，稍后刷新查看
+          </p>
+          <p v-if="(selected.failedImages ?? 0) > 0" class="muted" role="status">
+            {{ selected.failedImages }} 张图片脱敏失败，已隐藏，请联系管理员处理
+          </p>
           <div class="dispatch-box">
             <h3><AppIcon name="user" :size="18" />处置安排</h3>
             <label

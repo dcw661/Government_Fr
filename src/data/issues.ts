@@ -8,6 +8,8 @@ export interface Issue {
   longitude: number;
   latitude: number;
   images: string[];
+  pendingImages?: number;
+  failedImages?: number;
   type: string;
   description: string;
   assignee: string;
@@ -151,6 +153,8 @@ export const initialIssues: Issue[] = rows.map((r, i) => ({
   submittedAt: `2026-09-18 ${String(10 - Math.floor(i / 4)).padStart(2, "0")}:${String(48 - i * 3).padStart(2, "0")}`,
   assignee: r[3] === "待分配" ? "" : people[i % 4]!,
   images: ["/issue-scene.svg"],
+  pendingImages: 0,
+  failedImages: 0,
   version: 0,
 }));
 export function isIssueList(value: unknown): value is Issue[] {
@@ -176,6 +180,8 @@ export function isIssueList(value: unknown): value is Issue[] {
         Math.abs(v.latitude) <= 90 &&
         Array.isArray(v.images) &&
         v.images.every((x: unknown) => typeof x === "string") &&
+        (v.pendingImages === undefined || (Number.isInteger(v.pendingImages) && v.pendingImages >= 0)) &&
+        (v.failedImages === undefined || (Number.isInteger(v.failedImages) && v.failedImages >= 0)) &&
         statuses.includes(v.progress),
     ) &&
     new Set(value.map((v) => v.id)).size === value.length
