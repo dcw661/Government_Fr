@@ -65,11 +65,11 @@ VITE_SERVER_API_BASE_URL=https://api.example.gov.cn/
 
 ### 坐标系
 
-百度底图使用 **BD-09**，而国内上报数据通常是 GCJ-02（高德、腾讯等）或 WGS-84（GPS 原始）。直接叠加会产生约 900 米的系统性偏移，所以 `src/utils/coord.ts` 会先做转换再上图。
+当前上报端采用原生 GPS／浏览器定位，后端存储和接口返回 **WGS-84** 原始经纬度。百度底图使用 **BD-09**，`src/utils/coord.ts` 按 **WGS-84 → GCJ-02 → BD-09** 转换后上图；漏掉第一步会产生数百米偏移。转换结果仅用于地图，不回写后端。
 
-- 数据坐标系由 `SOURCE_COORD_SYSTEM` 决定，当前为 `"gcj02"`。接入真实后端时请改为后端实际返回的坐标系（`"gcj02"` / `"wgs84"` / `"bd09"`）。
+- 数据坐标系由 `SOURCE_COORD_SYSTEM` 决定，当前为 `"wgs84"`。更换定位 SDK 时必须核对其输出坐标系，不要用增加小数位代替坐标系转换。
 - `"bd09"` 表示后端已返回百度坐标，此时不做任何转换。
-- 地图初始视野由 `IssueMap.vue` 里的 `INITIAL_CENTER` 决定，当前是南京中心城区。
+- 地图初始视野由 `IssueMap.vue` 里的 `INITIAL_CENTER` 决定，当前是南京中心城区；该固定参考点仍显式按 `"gcj02"` 转换，避免跟随上报数据的坐标系变化。
 
 ### 其他
 
@@ -93,7 +93,7 @@ VITE_SERVER_API_BASE_URL=https://api.example.gov.cn/
 | title | 展示标题；后端无标题时可从描述截取 |
 | submitter | 提交人 |
 | submittedAt | 提交时间 |
-| longitude / latitude | 经度 / 纬度，数字 |
+| longitude / latitude | WGS-84 原始经度 / 纬度，数字，地图转换前不截断 |
 | images | 图片 URL 数组 |
 | type | 问题类型 |
 | description | 问题详细描述 |
@@ -108,6 +108,7 @@ VITE_SERVER_API_BASE_URL=https://api.example.gov.cn/
 
 ## 验证记录
 
-- `pnpm run build`：Vue 类型检查和 Vite 生产构建通过。
+- `npm run build`：Vue 类型检查和 Vite 生产构建。
+- `npm run test:coords`：验证 GPS 坐标转换、固定 GCJ-02 参考点和小数精度。
 - 后端 `IssueControllerTest` 覆盖建单、列表、详情和更新契约，确保本页面使用的字段与状态值一致。
 - 页面保留加载失败、手动重试、保存失败和并发版本冲突的反馈入口。

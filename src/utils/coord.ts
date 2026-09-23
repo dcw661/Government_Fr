@@ -11,7 +11,8 @@
 /** 上报数据使用的坐标系 */
 export type CoordSystem = "gcj02" | "wgs84" | "bd09";
 
-export const SOURCE_COORD_SYSTEM: CoordSystem = "gcj02";
+// 当前上报端使用原生 GPS／浏览器定位，后端原样保存 WGS-84。
+export const SOURCE_COORD_SYSTEM: CoordSystem = "wgs84";
 
 const PI = Math.PI;
 const X_PI = (PI * 3000) / 180;
@@ -64,9 +65,13 @@ export function gcj02ToBd09(lng: number, lat: number): [number, number] {
 }
 
 /** 按 SOURCE_COORD_SYSTEM 声明的坐标系转换成百度底图可用的 BD-09 */
-export function toBd09(lng: number, lat: number): [number, number] {
-  if (SOURCE_COORD_SYSTEM === "bd09") return [lng, lat];
+export function toBd09(
+  lng: number,
+  lat: number,
+  coordSystem: CoordSystem = SOURCE_COORD_SYSTEM,
+): [number, number] {
+  if (coordSystem === "bd09") return [lng, lat];
   const source: [number, number] =
-    SOURCE_COORD_SYSTEM === "wgs84" ? wgs84ToGcj02(lng, lat) : [lng, lat];
+    coordSystem === "wgs84" ? wgs84ToGcj02(lng, lat) : [lng, lat];
   return gcj02ToBd09(source[0], source[1]);
 }

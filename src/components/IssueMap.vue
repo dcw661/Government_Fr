@@ -262,7 +262,7 @@ onMounted(async () => {
   api = sdk;
   try {
     const instance = new sdk.Map(container);
-    const [lng, lat] = toBd09(INITIAL_CENTER[0], INITIAL_CENTER[1]);
+    const [lng, lat] = toBd09(INITIAL_CENTER[0], INITIAL_CENTER[1], "gcj02");
     instance.centerAndZoom(new sdk.Point(lng, lat), INITIAL_ZOOM);
     instance.enableScrollWheelZoom(true);
     map = instance;
